@@ -1,3 +1,8 @@
+import pandas as pd
+
+# Specify path to file
+path = 'C:/Users/jarne/Documents/School/Visualization in Data Science/Project/madrid.h5/madrid.h5'
+
 partials = list()
 # Iterate over every key in the h5 file (Credits to the Kaggle website)
 # https://www.kaggle.com/code/diegovicente/a-short-introduction-to-hdf5-files

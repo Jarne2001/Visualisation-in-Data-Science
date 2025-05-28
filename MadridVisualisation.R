@@ -4,23 +4,21 @@ library(tidyr)
 library(dplyr)
 library(tidyverse)
 library(lubridate)
+library(cowplot)
 
 # Load dataset made in Python
 pollutants <- read.csv("C:/Users/jarne/Documents/School/Visualization in Data Science/Project/complete_means_pollutants.csv")
 
 head(pollutants)
 
-pollutants <- pollutants %>%
-  mutate(date = lubridate::make_date(Year, Month, 1))
+pollutants <- pollutants %>% mutate(date = lubridate::make_date(Year, Month, 1))
 
 # Pivot the dataframe
 pollutants_pivot <- pollutants %>%
-  select(date, PM25, NO_2, O_3, PM10, SO_2) %>%
-  pivot_longer(-date, names_to = "Pollutant", values_to = "Concentration")
+  select(date, PM25, NO_2, O_3, PM10, SO_2) %>% pivot_longer(-date, names_to = "Pollutant", values_to = "Concentration")
 
 # Create the CAQI bands (based on the CAQI tresholds)
-caqi_zones <- tribble(
-  ~Pollutant, ~ymin, ~ymax,   ~zone,
+caqi_zones <- tribble(~Pollutant, ~ymin, ~ymax,   ~zone,
   # O3
   "O_3",         0,     50,   "Very Good",
   "O_3",        50,    100,   "Good",
@@ -55,13 +53,11 @@ caqi_zones <- tribble(
   "PM25",       20,     25,   "Medium",
   "PM25",       25,     50,   "Poor",
   "PM25",       50,     75,   "Very Poor",
-  "PM25",       75,    800,   "Extremely Poor"
-)
+  "PM25",       75,    800,   "Extremely Poor")
 
 caqi_zones <- caqi_zones %>%
   mutate(zone = factor(zone,
-                       levels = c("Very Good","Good","Medium","Poor","Very Poor","Extremely Poor")
-  ))
+                       levels = c("Very Good","Good","Medium","Poor","Very Poor","Extremely Poor")))
 
 ggplot() +
   geom_rect(
@@ -70,15 +66,12 @@ ggplot() +
       xmin = as.Date("2001-01-01"),
       xmax = as.Date("2018-12-31"),
       ymin = ymin, ymax = ymax,
-      fill = zone
-    ),
-    inherit.aes = FALSE, alpha = 1
-  ) +
+      fill = zone),
+    inherit.aes = FALSE, alpha = 1) +
   geom_line(
     data = pollutants_pivot,
     aes(x = date, y = Concentration),
-    color = "black", size = 0.5
-  ) +
+    color = "black", size = 0.5) +
   facet_wrap(~Pollutant, scales = "fixed") +
   coord_cartesian(ylim = c(0, 100)) +
   # Assign colors to each CAQI index band
@@ -88,18 +81,12 @@ ggplot() +
     "Medium"          = "#FFFF00",
     "Poor"            = "#FFC000",
     "Very Poor"       = "#FF0000",
-    "Extremely Poor"  = "#C00000"
-  )) +
+    "Extremely Poor"  = "#C00000")) +
   
-  scale_x_date(
-    date_breaks = "1 year", date_labels = "%Y",
-    expand = expansion(add = c(0,0))
-  ) +
-  labs(
-    title = "Monthly Pollutant Concentrations with CAQI Bands",
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y",expand = expansion(add = c(0,0))) +
+  labs(title = "Monthly Pollutant Concentrations with CAQI Bands",
     x = "Date", y = "Concentration (µg/m³)",
-    fill = "CAQI Zone"
-  ) +
+    fill = "CAQI Zone") +
   # Keep gridlines visually away
   theme_minimal() +
   theme(
@@ -107,8 +94,7 @@ ggplot() +
     axis.ticks = element_line(color = "black"),
     axis.text = element_text(color = "black"),
     strip.background = element_rect(fill = "grey90", color = NA),
-    strip.text = element_text(face = "bold")
-  )
+    strip.text = element_text(face = "bold"))
 
 ##
 
@@ -138,7 +124,7 @@ plots <- map(pollutant_plots, function(p) {
     ) +
     # Force the y-axis from 0 to 100
     coord_cartesian(ylim = c(0, 100)) +
-    # Assign the CAQI colors
+    # assign the CAQI colors
     scale_fill_manual(values = c(
       "Very Good"       = "#00B050",
       "Good"            = "#92D050",
@@ -163,13 +149,11 @@ plots <- map(pollutant_plots, function(p) {
       axis.ticks    = element_line(color = "black"),
       axis.text     = element_text(color = "black"),
       strip.background = element_rect(fill = "grey90", color = NA),
-      strip.text    = element_text(face = "bold")
-    )
-})
+      strip.text    = element_text(face = "bold"))})
 
 names(plots) <- pollutant_plots
 
-# Print each pollutant's plot (add some optional layers)
+# print each pollutant's plot (add some optional layers)
 
 plots[["NO_2"]] <- plots[["NO_2"]] +
   labs(title = "Mean Monthly NO2 Concentrations from 2001 to 2018 in Madrid") +
@@ -182,8 +166,7 @@ plots[["NO_2"]] <- plots[["NO_2"]] +
       "Very Poor"       = "#FF0000",
       "Extremely Poor"  = "#C00000"
     ),
-    breaks = c("Very Good", "Good", "Medium")
-  )
+    breaks = c("Very Good", "Good", "Medium"))
 
 print(plots[["NO_2"]])
 
@@ -215,8 +198,7 @@ plots[["SO_2"]] <- plots[["SO_2"]] +
       "Very Poor"       = "#FF0000",
       "Extremely Poor"  = "#C00000"
     ),
-    breaks = c("Very Good")
-  )
+    breaks = c("Very Good"))
 
 print(plots[["SO_2"]])
 
@@ -232,8 +214,7 @@ plots[["PM10"]] <- plots[["PM10"]] +
       "Very Poor"       = "#FF0000",
       "Extremely Poor"  = "#C00000"
     ),
-    breaks = c("Very Good", "Good", "Medium", "Poor")
-  )
+    breaks = c("Very Good", "Good", "Medium", "Poor"))
 
 print(plots[["PM10"]])
 
@@ -252,11 +233,7 @@ plots[["PM25"]] <- plots[["PM25"]] +
     breaks = c("Very Good", "Good", "Medium", "Poor")
   )
 
-print(plots[["PM25"]])
-
-library(patchwork)
-(plots[["NO_2"]] + plots[["O_3"]]) + plots[["SO_2"]] / (plots[["PM10"]] + plots[["PM25"]]) + plot_layout(guides="collect")
-
+ print(plots[["PM25"]])
 
 ## Plot with all pollutants:
 
@@ -502,7 +479,7 @@ plots <- map(pollutant_list, function(pol) {
     ) +
     labs(
       title = paste0(pol, " daily pollution, 2001–2018)"),
-      x = "Year", y = "Conc. (µg/m³)",
+      x = "Year", y = "Concentration (µg/m³)",
       fill = "CAQI Zone"
     ) +
     theme_minimal() +
@@ -600,3 +577,91 @@ plots[["PM25"]] <- plots[["PM25"]] +
   )
 
 print(plots[["PM25"]])
+
+## Figure with 5 plots
+
+plots[["NO_2"]] <- plots[["NO_2"]] +
+  labs(title = "", y = "NO2 Concentration (µg/m³)") +
+  scale_fill_manual(
+    values = c(
+      "Very Good"       = "#00B050",
+      "Good"            = "#92D050",
+      "Medium"          = "#FFFF00",
+      "Poor"            = "#FFC000",
+      "Very Poor"       = "#FF0000",
+      "Extremely Poor"  = "#C00000"
+    ),
+    breaks = c("Very Good", "Good", "Medium", "Poor")
+  )
+
+plots[["O_3"]] <- plots[["O_3"]] +
+  labs(title = "", y = "O3 Concentration (µg/m³)") +
+  coord_cartesian(ylim = c(0, 120)) +
+  scale_fill_manual(
+    values = c(
+      "Very Good"       = "#00B050",
+      "Good"            = "#92D050",
+      "Medium"          = "#FFFF00",
+      "Poor"            = "#FFC000",
+      "Very Poor"       = "#FF0000",
+      "Extremely Poor"  = "#C00000"
+    ),
+    breaks = c("Very Good", "Good", "Medium"))
+
+plots[["SO_2"]] <- plots[["SO_2"]] +
+  labs(title = "", y = "SO2 Concentration (µg/m³)") +
+  coord_cartesian(ylim = c(0, 70)) +
+  scale_fill_manual(
+    values = c(
+      "Very Good"       = "#00B050",
+      "Good"            = "#92D050",
+      "Medium"          = "#FFFF00",
+      "Poor"            = "#FFC000",
+      "Very Poor"       = "#FF0000",
+      "Extremely Poor"  = "#C00000"
+    ),
+    breaks = c("Very Good", "Good"))
+
+plots[["PM10"]] <- plots[["PM10"]] +
+  labs(title = "", y = "PM10 Concentration (µg/m³)") +
+  coord_cartesian(ylim = c(0, 220)) +
+  scale_fill_manual(
+    values = c(
+      "Very Good"       = "#00B050",
+      "Good"            = "#92D050",
+      "Medium"          = "#FFFF00",
+      "Poor"            = "#FFC000",
+      "Very Poor"       = "#FF0000",
+      "Extremely Poor"  = "#C00000"
+    ),
+    breaks = c("Very Good", "Good", "Medium", "Poor", "Very Poor", "Extremely Poor"))
+
+print(plots[["PM10"]])
+
+plots[["PM25"]] <- plots[["PM25"]] +
+  labs(title = "", y ="PM25 Concentration (µg/m³)") +
+  coord_cartesian(ylim = c(0, 70)) +
+  scale_fill_manual(
+    values = c(
+      "Very Good"       = "#00B050",
+      "Good"            = "#92D050",
+      "Medium"          = "#FFFF00",
+      "Poor"            = "#FFC000",
+      "Very Poor"       = "#FF0000",
+      "Extremely Poor"  = "#C00000"
+    ),
+    breaks = c("Very Good", "Good", "Medium", "Poor", "Very Poor"))
+
+print(plots[["PM25"]])
+
+final_figure <- plot_grid(
+  plotlist = plots,
+  nrow     = 3,
+  ncol     = 2,
+  labels   = "")
+
+# add title
+ggdraw() +
+  draw_plot(final_figure, height = 0.90) +
+  draw_label("Mean Daily Pollutant Concentrations in Madrid (2001-2018)",
+             fontface = "bold", x = 0.5, y = 0.98, hjust = 0.5, vjust = 1)

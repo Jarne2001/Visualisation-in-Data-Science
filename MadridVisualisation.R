@@ -11,11 +11,11 @@ pollutants <- read.csv("C:/Users/jarne/Documents/School/Visualization in Data Sc
 
 head(pollutants)
 
-pollutants <- pollutants %>% mutate(date = lubridate::make_date(Year, Month, 1))
+pollutants <- pollutants%>% mutate(date = lubridate::make_date(Year, Month, 1))
 
 # Pivot the dataframe
 pollutants_pivot <- pollutants %>%
-  select(date, PM25, NO_2, O_3, PM10, SO_2) %>% pivot_longer(-date, names_to = "Pollutant", values_to = "Concentration")
+  select(date, PM25, NO_2, O_3, PM10, SO_2) %>% pivot_longer(-date, names_to = "Pollutant",values_to = "Concentration")
 
 # Create the CAQI bands (based on the CAQI tresholds)
 caqi_zones <- tribble(~Pollutant, ~ymin, ~ymax,   ~zone,
